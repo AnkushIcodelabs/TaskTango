@@ -1,15 +1,24 @@
 import React from 'react';
 import {SafeAreaView, StyleSheet, Text, Image} from 'react-native';
 import {useAppSelector} from '../redux/store';
+import {
+  displayName,
+  firstName,
+  lastName,
+  profileImage,
+} from '../redux/slices/authSlice';
 
 const HomePage = () => {
-  const user = useAppSelector(state => state.auth.user);
-  const username = user?.data?.data?.attributes?.profile?.displayName;
-  const userImage = user?.data?.included[0]?.attributes?.variants?.default?.url;
+  const display_Name = useAppSelector(displayName);
+  const profile_Image = useAppSelector(profileImage);
+  const first_Name = useAppSelector(firstName);
+  const last_Name = useAppSelector(lastName);
   return (
     <SafeAreaView style={styles.container}>
-      <Text>{username}</Text>
-      <Image style={styles.profileImage} source={{uri: userImage}} />
+      <Text>{first_Name}</Text>
+      <Text>{last_Name}</Text>
+      <Text>{display_Name}</Text>
+      <Image style={styles.profileImage} source={{uri: profile_Image}} />
     </SafeAreaView>
   );
 };

@@ -9,6 +9,10 @@ import React, {useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {useAppDispatch} from '../../../redux/store';
 import {loginUser} from '../../../redux/slices/authSlice';
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import type {RootStackParamList} from '../../../navigation/types/types';
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
 const LoginForm = () => {
   const [form, setForm] = useState({
@@ -19,15 +23,13 @@ const LoginForm = () => {
     email: '',
     password: '',
   });
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
   const dispatch = useAppDispatch();
 
   const handleLogin = async () => {
-    let valid = true;
     const newErrors = {email: '', password: ''};
     if (!form.email.includes('@')) {
       newErrors.email = 'Invalid Email';
-      valid = false;
     }
     if (form.password.length < 8) {
       newErrors.password = 'Password must be at least 8 characters';
@@ -39,7 +41,7 @@ const LoginForm = () => {
     };
     const res = await dispatch(loginUser(params));
     if (res) {
-      navigation.navigate('HomePage' as never);
+      navigation.navigate('HomePage');
     }
   };
 

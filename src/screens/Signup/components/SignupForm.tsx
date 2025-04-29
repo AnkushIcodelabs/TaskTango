@@ -1,4 +1,8 @@
 import {useNavigation} from '@react-navigation/native';
+import type {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import type {RootStackParamList} from '../../../navigation/types/types';
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'HomePage'>;
 import React, {useState} from 'react';
 import {
   Image,
@@ -16,14 +20,6 @@ import {
 import {useAppDispatch, useAppSelector} from '../../../redux/store';
 import * as ImagePicker from 'react-native-image-picker';
 
-interface params {
-  firstName: string;
-  lastName: string;
-  displayName: string;
-  email: string;
-  password: string;
-}
-
 const SignupForm = () => {
   const [form, setForm] = useState({
     firstName: '',
@@ -35,7 +31,7 @@ const SignupForm = () => {
     email: '',
     password: '',
   });
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp>();
   const dispatch = useAppDispatch();
   const tempImage = useAppSelector(state => state.auth.tempImage);
 
@@ -52,7 +48,7 @@ const SignupForm = () => {
       console.log('ImagePicker Error:', result.errorMessage);
       return;
     }
-    const imageUri = result.assets[0];
+    const imageUri = result?.assets[0];
     if (!imageUri) {
       console.log('No image selected');
       return;
@@ -103,7 +99,7 @@ const SignupForm = () => {
       }
 
       if (res) {
-        navigation.navigate('HomePage' as never);
+        navigation.navigate('HomePage');
       }
     } catch (error) {}
   };

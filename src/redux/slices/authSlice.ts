@@ -1,10 +1,10 @@
 import {createAsyncThunk, createSlice} from '@reduxjs/toolkit';
 import type {PayloadAction} from '@reduxjs/toolkit';
 import {sdk} from '../../sharetribehelper/helper';
-import {store} from '../store';
+import {RootState, store, useAppSelector} from '../store';
 
 export interface AuthInitialState {
-  user: string | null;
+  user: any | null;
   loading: boolean;
   tempImage: null | {
     id: string;
@@ -14,6 +14,17 @@ export interface AuthInitialState {
   };
   uploadedProfileImage: null | {_sdkType: string; UUID: string};
 }
+export interface SignupParams {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+}
+
+export interface LoginParams {
+  username: string;
+  password: string;
+}
 
 const initialState: AuthInitialState = {
   user: null,
@@ -21,6 +32,19 @@ const initialState: AuthInitialState = {
   tempImage: null,
   uploadedProfileImage: null,
 };
+
+export interface ImageParams {
+  file: {
+    id: string;
+    name: string;
+    uri: string;
+    type: string;
+  };
+}
+
+export interface UpdateUserProfileParams {
+  profileImageId: string;
+}
 
 export const authSlice = createSlice({
   name: 'authSlice',
@@ -48,6 +72,7 @@ export const authSlice = createSlice({
       })
       .addCase(signupUser.rejected, state => {
         state.user = null;
+        state.loading = false;
       });
     //image upload
     builder
@@ -60,6 +85,7 @@ export const authSlice = createSlice({
       })
       .addCase(uploadImage.rejected, state => {
         state.uploadedProfileImage = null;
+        state.loading = false;
       });
     // current User
     builder
@@ -78,7 +104,7 @@ export const authSlice = createSlice({
 
 export const signupUser = createAsyncThunk(
   'authSlice/signup',
-  async (params, {dispatch, getState}) => {
+  async (params: SignupParams, {dispatch, getState}) => {
     try {
       const res = await sdk.currentUser.create(params, {
         expand: true,
@@ -131,7 +157,7 @@ export const signupUser = createAsyncThunk(
 
 export const uploadImage = createAsyncThunk(
   'authSlice/uploadImage',
-  async (imageParams, {}) => {
+  async (imageParams: ImageParams, {}) => {
     try {
       const res = await sdk.images.upload(
         {
@@ -151,7 +177,7 @@ export const uploadImage = createAsyncThunk(
 
 export const updateUserProfile = createAsyncThunk(
   'authSlice/profileImage',
-  async (params, {}) => {
+  async (params: UpdateUserProfileParams, {}) => {
     try {
       const res = await sdk.currentUser.updateProfile(params, {
         expand: true,
@@ -167,16 +193,13 @@ export const updateUserProfile = createAsyncThunk(
 
 export const fetchCurrentUser = createAsyncThunk(
   'authSlice/fetchCurrentUser',
-  async (param = {}, {dispatch}) => {
+  async (_, {}) => {
     try {
       const currentUserParameters = {
         include: ['profileImage'],
       };
-      const params = {...param, ...currentUserParameters};
       const res = await sdk.currentUser.show(currentUserParameters);
-      //return res;
       if (res.status === 200) {
-        // dispatch(mergeCurrentUser(res));
         return res;
       }
     } catch (error) {
@@ -185,20 +208,31 @@ export const fetchCurrentUser = createAsyncThunk(
   },
 );
 
-export const loginUser = createAsyncThunk('auth/login', async (params, {}) => {
-  try {
-    const result = await sdk.login(params);
-    const currentUser = await sdk.currentUser.show();
-    return currentUser;
-  } catch (error) {
-    console.log('Error while Logging in', error);
-  }
-});
+export const loginUser = createAsyncThunk(
+  'auth/login',
+  async (params: LoginParams, {}) => {
+    try {
+      const result = await sdk.login(params);
+      console.log('result for Logging in', result);
+      const currentUser = await sdk.currentUser.show();
+      return currentUser;
+    } catch (error) {
+      console.log('Error while Logging in', error);
+    }
+  },
+);
 
 export const {resetAuthState, setTempImage, mergeCurrentUser} =
   authSlice.actions;
 
 export default authSlice.reducer;
-function getState(): {auth: AuthInitialState} {
-  throw new Error('Function not implemented.');
-}
+export const user = (state: RootState) => state.auth.user;
+export const displayName = (state: RootState) =>
+  state?.auth?.user?.data?.data?.attributes?.profile?.displayName;
+export const profileImage = (state: RootState) =>
+  state?.auth?.user?.data?.included[0]?.attributes?.variants?.default?.url;
+export const firstName = (state: RootState) =>
+  state?.auth?.user?.data?.data?.attributes?.profile?.firstName;
+export const lastName = (state: RootState) =>
+  state?.auth?.user?.data?.data?.attributes?.profile?.lastName;
+console.log('displayName', displayName);
