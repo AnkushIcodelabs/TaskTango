@@ -190,8 +190,8 @@ export const fetchCurrentUser = createAsyncThunk(
       console.log('res for current user', res);
       //return res;
       if (res.status === 200) {
-        dispatch(mergeCurrentUser(res));
-        // return res.data.data;
+        const res2 = dispatch(mergeCurrentUser(res));
+        return res2;
       }
     } catch (error) {
       console.log('error to show', error);
