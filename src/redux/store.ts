@@ -1,16 +1,7 @@
-import {configureStore} from '@reduxjs/toolkit';
-import authReducer from './slices/authSlice';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import {
-  persistStore,
-  persistReducer,
-  FLUSH,
-  REHYDRATE,
-  PAUSE,
-  PERSIST,
-  PURGE,
-  REGISTER,
-} from 'redux-persist';
+import {configureStore} from '@reduxjs/toolkit';
+import {persistReducer, persistStore} from 'redux-persist';
+import authReducer from './slices/authSlice';
 
 import {TypedUseSelectorHook, useDispatch, useSelector} from 'react-redux';
 
@@ -28,9 +19,7 @@ export const store = configureStore({
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({
-      serializableCheck: {
-        ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
-      },
+      serializableCheck: false,
     }),
 });
 

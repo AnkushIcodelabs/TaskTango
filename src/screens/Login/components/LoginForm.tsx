@@ -8,6 +8,8 @@ import {
 } from 'react-native';
 import React, {useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
+import {useAppDispatch} from '../../../redux/store';
+import {loginUser} from '../../../redux/slices/authSlice';
 
 const LoginForm = () => {
   const [email, setEmail] = useState('');
@@ -15,6 +17,7 @@ const LoginForm = () => {
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
   const navigation = useNavigation();
+  const dispatch = useAppDispatch();
 
   const handleLogin = () => {
     if (!email.includes('@')) {
@@ -23,7 +26,11 @@ const LoginForm = () => {
     if (password.length < 8) {
       setPasswordError('Password length must be 8 characters');
     }
-    Alert.alert('button is pressed');
+    const params = {
+      username: email,
+      password: password,
+    };
+    dispatch(loginUser(params));
   };
 
   return (
@@ -82,6 +89,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: 'black',
+    //marginTop: 10,
   },
   btnText: {
     color: 'white',
@@ -94,6 +102,6 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     marginRight: 10,
   },
-  navBtn: {justifyContent: 'center', alignItems: 'center'},
+  navBtn: {justifyContent: 'center', alignItems: 'center', marginTop: 10},
   navText: {color: 'black', fontWeight: '600', textAlign: 'center'},
 });
