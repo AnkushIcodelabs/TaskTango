@@ -1,5 +1,4 @@
 import {
-  Alert,
   StyleSheet,
   Text,
   TextInput,
@@ -12,25 +11,36 @@ import {useAppDispatch} from '../../../redux/store';
 import {loginUser} from '../../../redux/slices/authSlice';
 
 const LoginForm = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [emailError, setEmailError] = useState('');
-  const [passwordError, setPasswordError] = useState('');
+  const [form, setForm] = useState({
+    email: '',
+    password: '',
+  });
+  const [errors, setErrors] = useState({
+    email: '',
+    password: '',
+  });
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
 
-  const handleLogin = () => {
-    if (!email.includes('@')) {
-      setEmailError('Email address is not valid');
+  const handleLogin = async () => {
+    let valid = true;
+    const newErrors = {email: '', password: ''};
+    if (!form.email.includes('@')) {
+      newErrors.email = 'Invalid Email';
+      valid = false;
     }
-    if (password.length < 8) {
-      setPasswordError('Password length must be 8 characters');
+    if (form.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
     }
+    setErrors(newErrors);
     const params = {
-      username: email,
-      password: password,
+      username: form.email,
+      password: form.password,
     };
-    dispatch(loginUser(params));
+    const res = await dispatch(loginUser(params));
+    if (res) {
+      navigation.navigate('HomePage' as never);
+    }
   };
 
   return (
@@ -40,19 +50,21 @@ const LoginForm = () => {
         placeholder="Enter your Email"
         style={styles.input}
         keyboardType="email-address"
-        onChangeText={setEmail}
-        value={email}
+        onChangeText={text => setForm({...form, email: text})}
+        value={form.email}
       />
-      {emailError && <Text style={styles.errorText}>{emailError}</Text>}
+      {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
       <Text style={styles.label}>Password</Text>
       <TextInput
         placeholder="Enter your Password"
         style={styles.input}
         secureTextEntry
-        onChangeText={setPassword}
-        value={password}
+        onChangeText={text => setForm({...form, password: text})}
+        value={form.password}
       />
-      {passwordError && <Text style={styles.errorText}>{passwordError}</Text>}
+      {errors.password && (
+        <Text style={styles.errorText}>{errors.password}</Text>
+      )}
       <TouchableOpacity onPress={handleLogin} style={styles.button}>
         <Text style={styles.btnText}>Login</Text>
       </TouchableOpacity>

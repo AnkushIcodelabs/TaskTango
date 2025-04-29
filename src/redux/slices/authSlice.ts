@@ -31,11 +31,9 @@ export const authSlice = createSlice({
     },
     setTempImage: (state, action) => {
       state.tempImage = action.payload;
-      console.log('redux temp >>>>>', action.payload);
     },
     mergeCurrentUser: (state, action) => {
       state.user = {...state.user, ...action.payload};
-      console.log('state.user', JSON.stringify(state.user));
     },
   },
   extraReducers: builder => {
@@ -46,7 +44,6 @@ export const authSlice = createSlice({
       })
       .addCase(signupUser.fulfilled, (state, action) => {
         state.user = action.payload;
-        // console.log('state.user>>>>>>', state.user);
         state.loading = false;
       })
       .addCase(signupUser.rejected, state => {
@@ -83,14 +80,9 @@ export const signupUser = createAsyncThunk(
   'authSlice/signup',
   async (params, {dispatch, getState}) => {
     try {
-      console.log('params for Signup', params);
-
-      console.log('sdk-->>>>>>', sdk);
       const res = await sdk.currentUser.create(params, {
         expand: true,
       });
-      console.log('res for Signup-->>>', JSON.stringify(res));
-      console.log('first', res.data.data.id.uuid);
       if (res.data.data.id.uuid) {
         const loginRes = await sdk.login({
           username: params.email,
@@ -110,7 +102,6 @@ export const signupUser = createAsyncThunk(
           },
         };
         const resImage = await dispatch(uploadImage(imageParams)).unwrap();
-        console.log('resImage-->>', resImage);
         if (resImage) {
           const imageIdParams = {
             profileImageId: resImage?.id?.uuid,
@@ -130,7 +121,7 @@ export const signupUser = createAsyncThunk(
       // return the login thunkr response
       // after login upload the image and update the user profile
 
-      return currentUser;
+      return res;
     } catch (error) {
       console.log('error for signup', JSON.stringify(error));
       throw error;
@@ -142,7 +133,6 @@ export const uploadImage = createAsyncThunk(
   'authSlice/uploadImage',
   async (imageParams, {}) => {
     try {
-      console.log('param for image', imageParams);
       const res = await sdk.images.upload(
         {
           image: imageParams.file,
@@ -151,7 +141,6 @@ export const uploadImage = createAsyncThunk(
           expand: true,
         },
       );
-      console.log('res for img', res);
       return res?.data?.data;
     } catch (error) {
       console.log('error for Image Upload', error);
@@ -164,12 +153,10 @@ export const updateUserProfile = createAsyncThunk(
   'authSlice/profileImage',
   async (params, {}) => {
     try {
-      console.log('params for Imageupload', params);
       const res = await sdk.currentUser.updateProfile(params, {
         expand: true,
         include: ['profileImage'],
       });
-      console.log('res for updateProfile', res);
       return res;
     } catch (error) {
       console.log('res for updateProfile', error);
@@ -187,21 +174,26 @@ export const fetchCurrentUser = createAsyncThunk(
       };
       const params = {...param, ...currentUserParameters};
       const res = await sdk.currentUser.show(currentUserParameters);
-      console.log('res for current user', res);
       //return res;
       if (res.status === 200) {
-        const res2 = dispatch(mergeCurrentUser(res));
-        return res2;
+        // dispatch(mergeCurrentUser(res));
+        return res;
       }
     } catch (error) {
       console.log('error to show', error);
     }
   },
 );
-// export const loginUser = createAsyncThunk(
-//   'auth/login',
-//   async (params, {}) => {},
-// );
+
+export const loginUser = createAsyncThunk('auth/login', async (params, {}) => {
+  try {
+    const result = await sdk.login(params);
+    const currentUser = await sdk.currentUser.show();
+    return currentUser;
+  } catch (error) {
+    console.log('Error while Logging in', error);
+  }
+});
 
 export const {resetAuthState, setTempImage, mergeCurrentUser} =
   authSlice.actions;

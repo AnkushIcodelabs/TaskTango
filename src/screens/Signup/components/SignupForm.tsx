@@ -11,7 +11,6 @@ import {
 import {
   setTempImage,
   signupUser,
-  updateUserProfile,
   uploadImage,
 } from '../../../redux/slices/authSlice';
 import {useAppDispatch, useAppSelector} from '../../../redux/store';
@@ -26,12 +25,16 @@ interface params {
 }
 
 const SignupForm = () => {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState(''); //convert these 4 states into 1
-  const [emailError, setEmailError] = useState('');
-  const [passwordError, setPasswordError] = useState(''); // convert the error state into 1
+  const [form, setForm] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    password: '',
+  });
+  const [errors, setErrors] = useState({
+    email: '',
+    password: '',
+  });
   const navigation = useNavigation();
   const dispatch = useAppDispatch();
   const tempImage = useAppSelector(state => state.auth.tempImage);
@@ -41,7 +44,6 @@ const SignupForm = () => {
       mediaType: 'photo',
       quality: 1,
     });
-    console.log('result for Image', result);
     if (result.didCancel) {
       console.log('User cancelled image picker');
       return;
@@ -57,7 +59,6 @@ const SignupForm = () => {
     }
     await dispatch(
       setTempImage({
-        // uri: imageUri?.uri?.includes('file://') ? imageUri.uri : add file:// in front of uri,
         uri: imageUri.uri,
         name: imageUri.fileName,
         type: imageUri.type,
@@ -67,21 +68,26 @@ const SignupForm = () => {
   };
 
   const handleSignup = async () => {
-    if (!email.includes('@')) {
-      setEmailError('Email address is not valid');
+    let valid = true;
+    const newErrors = {email: '', password: ''};
+    if (!form.email.includes('@')) {
+      newErrors.email = 'Invalid Email';
+      valid = false;
     }
-    if (password.length < 8) {
-      setPasswordError('Password length must be 8 characters');
+    if (form.password.length < 8) {
+      newErrors.password = 'Password must be at least 8 characters';
+      valid = false;
     }
+
+    setErrors(newErrors);
 
     const params = {
-      firstName: firstName,
-      lastName: lastName,
-      email: email,
-      password: password,
+      firstName: form.firstName,
+      lastName: form.lastName,
+      email: form.email,
+      password: form.password,
     };
 
-    console.log(params);
     try {
       const res = await dispatch(signupUser(params)).unwrap();
       if (tempImage) {
@@ -97,8 +103,7 @@ const SignupForm = () => {
       }
 
       if (res) {
-        console.log('response-->>', JSON.stringify(res));
-        navigation.navigate('HomePage');
+        navigation.navigate('HomePage' as never);
       }
     } catch (error) {}
   };
@@ -115,34 +120,36 @@ const SignupForm = () => {
       <TextInput
         placeholder="Enter your FirstName"
         style={styles.input}
-        onChangeText={setFirstName}
-        value={firstName}
+        onChangeText={text => setForm({...form, firstName: text})}
+        value={form.firstName}
       />
       <Text style={styles.label}>LastName</Text>
       <TextInput
         placeholder="Enter your LastName"
         style={styles.input}
-        onChangeText={setLastName}
-        value={lastName}
+        onChangeText={text => setForm({...form, lastName: text})}
+        value={form.lastName}
       />
       <Text style={styles.label}>Email</Text>
       <TextInput
         placeholder="Enter your Email"
         style={styles.input}
         keyboardType="email-address"
-        onChangeText={setEmail}
-        value={email}
+        onChangeText={text => setForm({...form, email: text})}
+        value={form.email}
       />
-      {emailError && <Text style={styles.errorText}>{emailError}</Text>}
+      {errors.email && <Text style={styles.errorText}>{errors.email}</Text>}
       <Text style={styles.label}>Password</Text>
       <TextInput
         placeholder="Enter your Password"
         style={styles.input}
         secureTextEntry
-        onChangeText={setPassword}
-        value={password}
+        onChangeText={text => setForm({...form, password: text})}
+        value={form.password}
       />
-      {passwordError && <Text style={styles.errorText}>{passwordError}</Text>}
+      {errors.password && (
+        <Text style={styles.errorText}>{errors.password}</Text>
+      )}
       <TouchableOpacity onPress={handleSignup} style={styles.button}>
         <Text style={styles.btnText}>Signup</Text>
       </TouchableOpacity>
